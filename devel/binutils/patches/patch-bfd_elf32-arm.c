@@ -1,22 +1,15 @@
-$NetBSD: patch-bfd_elf32-arm.c,v 1.1 2016/01/30 22:15:11 ryoon Exp $
+$NetBSD$
 
-Resolve popcount(3) conflict on NetBSD
-
---- bfd/elf32-arm.c.orig	2016-01-25 08:51:06.000000000 +0000
+--- bfd/elf32-arm.c.orig	Mon Mar 25 08:06:19 2013
 +++ bfd/elf32-arm.c
-@@ -3133,6 +3133,7 @@ ctz (unsigned int mask)
- #endif
- }
+@@ -13475,6 +13475,10 @@ elf32_arm_readonly_dynrelocs (struct elf_link_hash_ent
+ 	{
+ 	  struct bfd_link_info *info = (struct bfd_link_info *) inf;
  
-+#if !defined(__NetBSD__)
- static inline int
- popcount (unsigned int mask)
- {
-@@ -3150,6 +3151,7 @@ popcount (unsigned int mask)
-   return sum;
- #endif
- }
-+#endif
++          if (info->warn_shared_textrel)
++            (*_bfd_error_handler)
++              (_("warning: dynamic relocation in readonly section `%s'"),
++              h->root.root.string);
+ 	  info->flags |= DF_TEXTREL;
  
- /* Create an entry in an ARM ELF linker hash table.  */
- 
+ 	  /* Not an error, just cut short the traversal.  */

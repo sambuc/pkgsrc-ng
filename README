@@ -1,3 +1,40 @@
+This is a work in progress to upgrade MINIX PKGSRC to the latest 
+quarterly available (2015QX).
+
+I have rebased, squashed and edited commit message in order to facilitate
+the next update, and have a clear focus from the commit message what we
+need and why, at minimum.
+
+Step 0: Those are changes which update the PKGSRC definition of the MINIX
+        plateform. Those are required to even be able to start.
+
+Step 1: those are the required package to bootstrap PKGSRC, and start pbulk
+        builds.
+
+Step 2:  - base tools: the actual tools we need for development on a regular
+                       MINIX system.
+         - base dep: Dependencies which are pulled in by the base tools.
+                     This may change between each update, depending on the
+                     versions of the tools.
+
+Any package without a "Step X:" prefix is icing on the cake, and helps improve
+the number of available packages on MINIX. They should not be considered as
+blocking requirements for a new release.
+
+Known Bugs
+----------
+ - When using bmake to compile a package by hand, sometimes the following
+   variables need to be exported explicitly in the environment:   
+     export STRIP=strip
+     export CC=clang
+     export CXX=clang++
+
+ - Some package might fail because of coredumps or even during execution.
+   In some cases, this is due to the use of both mthread and GNU Pth.
+   mthread might be pulled in as a dependency of libc++, and a few X11 libraries.
+
+----------
+
 $NetBSD: README,v 1.18 2005/05/07 22:18:28 wiz Exp $
 
 Please see doc/pkgsrc.txt for information.

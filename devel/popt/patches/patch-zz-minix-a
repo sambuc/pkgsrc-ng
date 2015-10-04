@@ -1,0 +1,15 @@
+--- poptconfig.c.orig	Sun Oct  4 12:34:19 2015
++++ poptconfig.c	Sun Oct  4 12:35:21 2015
+@@ -42,10 +42,10 @@
+ /*@=declundef =exportheader =incondefs =protoparammatch =redecl =type @*/
+ #endif	/* __LCLINT__ */
+ 
+-#if defined(__NetBSD__)
++#if defined(__NetBSD__) || defined(__minix)
+ #include <sys/param.h>
+ #endif
+-#if !defined(__GLIBC__) && (!defined(__NetBSD__) || __NetBSD_Version__ < 599001100)
++#if !defined(__GLIBC__) && !defined(__minix) && (!defined(__NetBSD__) || __NetBSD_Version__ < 599001100)
+ /* Return nonzero if PATTERN contains any metacharacters.
+    Metacharacters can be quoted with backslashes if QUOTE is nonzero.  */
+ static int

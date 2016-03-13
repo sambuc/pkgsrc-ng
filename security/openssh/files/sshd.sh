@@ -22,12 +22,13 @@ sshd_keygen()
 {
 	(
 	umask 022
-	if [ -f @PKG_SYSCONFDIR@/ssh_host_key ]; then
-		@ECHO@ "You already have an RSA host key in @PKG_SYSCONFDIR@/ssh_host_key"
-		@ECHO@ "Skipping protocol version 1 RSA Key Generation"
-	else
-		${keygen_command} -t rsa1 -b 1024 -f @PKG_SYSCONFDIR@/ssh_host_key -N ''
-	fi
+# LSC: For Minix: rsa1 is not supported anymore
+#	if [ -f @PKG_SYSCONFDIR@/ssh_host_key ]; then
+#		@ECHO@ "You already have an RSA host key in @PKG_SYSCONFDIR@/ssh_host_key"
+#		@ECHO@ "Skipping protocol version 1 RSA Key Generation"
+#	else
+#		${keygen_command} -t rsa1 -b 1024 -f @PKG_SYSCONFDIR@/ssh_host_key -N ''
+#	fi
 
 	if [ -f @PKG_SYSCONFDIR@/ssh_host_dsa_key ]; then
 		@ECHO@ "You already have a DSA host key in @PKG_SYSCONFDIR@/ssh_host_dsa_key"
@@ -63,7 +64,9 @@ sshd_keygen()
 
 sshd_precmd()
 {
-	if [ ! -f @PKG_SYSCONFDIR@/ssh_host_key -o \
+# LSC: For Minix: rsa1 is now unsupported
+#	if [ ! -f @PKG_SYSCONFDIR@/ssh_host_key -o \
+	if [ \
 	     ! -f @PKG_SYSCONFDIR@/ssh_host_dsa_key -o \
 	     ! -f @PKG_SYSCONFDIR@/ssh_host_rsa_key -o \
 	     ! -f @PKG_SYSCONFDIR@/ssh_host_ecdsa_key -o \

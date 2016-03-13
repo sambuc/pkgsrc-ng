@@ -110,6 +110,10 @@ CONFIGURE_ARGS+=	--disable-libutil
 # prior version don't have it.  So, disable use of strnvis(3) now.
 #
 CONFIGURE_ENV+=		ac_cv_func_strnvis=no
+. if ${OS_VARIANT} == "Minix"
+CPPFLAGS+= -D_OPENBSD_SOURCE
+CONFIGURE_ARGS+= ac_cv_have_decl_O_NONBLOCK=no
+. endif # ${OS_VARIANT} == "Minix"
 .endif
 
 .if (${OPSYS} == "SunOS") && (${OS_VERSION} == "5.8" || ${OS_VERSION} == "5.9")

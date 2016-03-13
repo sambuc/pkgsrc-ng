@@ -6,3 +6,6 @@ Size (opensmtpd-5.3.3p1.tar.gz) = 343733 bytes
 SHA1 (patch-configure.ac) = ed819952951700c057c11200095a72972aafc1f9
 SHA1 (patch-smtpd_Makefile.am) = 4267002ecadceaf68868b9d782d5e6f8571ebc36
 SHA1 (patch-smtpd_queue_fsqueue.c) = 80dae37705378c022c1a76d31ea54a3f907b6c1a
+SHA1 (patch-zz-minix-a) = 3c402b4c78c9d44728cabf2ce9193276b56f2989
+SHA1 (patch-zz-minix-b) = d77fa1c90d95e105a4b5e0d6dba2c387deae2c39
+SHA1 (patch-zz-minix-c) = a5d12cacd94ae8e3a7d62fd843c7884859ebe8b8

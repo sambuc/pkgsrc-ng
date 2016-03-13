@@ -1,0 +1,11 @@
+--- smtpd/Makefile.am.orig	Sun Mar 13 18:26:08 2016
++++ smtpd/Makefile.am	Sun Mar 13 18:33:22 2016
+@@ -139,7 +139,7 @@
+ 
+ $(MANPAGES): $(MANPAGES_IN)
+ 	if test "$(MANTYPE)" = "cat"; then \
+-		manpage=$(srcdir)/`echo $@ | sed 's/\.[1-9]\.out$$/\.0/'`; \
++		manpage=$(srcdir)/`echo $@ | sed 's/\.out$$//'`; \
+ 	else \
+ 		manpage=$(srcdir)/`echo $@ | sed 's/\.out$$//'`; \
+ 	fi; \

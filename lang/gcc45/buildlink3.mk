@@ -1,14 +1,17 @@
-# $NetBSD: buildlink3.mk,v 1.8 2015/11/25 12:51:16 jperkin Exp $
+# $NetBSD: buildlink3.mk,v 1.6 2013/04/06 11:06:52 rodent Exp $
 
 BUILDLINK_TREE+=	gcc45
 
 .if !defined(GCC45_BUILDLINK3_MK)
 GCC45_BUILDLINK3_MK:=
 
+FIND_PREFIX:=	BUILDLINK_PREFIX.gcc45=gcc45
+.include "../../mk/find-prefix.mk"
+
 _GCC45_SUBDIR=	gcc45
 _GCC45_PREFIX=	${BUILDLINK_PREFIX.gcc45}/${_GCC45_SUBDIR}
 
-BUILDLINK_API_DEPENDS.gcc45+=	gcc45>=4.5
+BUILDLINK_API_DEPENDS.gcc45+=	gcc45>=${_GCC_REQD}
 BUILDLINK_ABI_DEPENDS.gcc45+=	gcc45>=4.5.0
 BUILDLINK_PKGSRCDIR.gcc45?=	../../lang/gcc45
 

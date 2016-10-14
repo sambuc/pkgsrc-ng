@@ -1,8 +1,8 @@
-# $NetBSD: Makefile,v 1.22 2016/07/09 06:38:24 wiz Exp $
+# $NetBSD: Makefile,v 1.13 2013/05/31 12:41:11 wiz Exp $
 
 DISTNAME=		gcc-${GCC_VERSION}
 PKGNAME=		gcc45-${GCC_VERSION}
-PKGREVISION=		8
+PKGREVISION=		5
 CATEGORIES=		lang
 MASTER_SITES=		${MASTER_SITE_GNU:=gcc/gcc-${GCC_VERSION}/}
 EXTRACT_SUFX=		.tar.bz2
@@ -13,7 +13,6 @@ COMMENT=		GNU Compiler Collection 4.5
 LICENSE=		gnu-gpl-v2 AND gnu-gpl-v3 AND gnu-lgpl-v2 AND gnu-lgpl-v3
 
 USE_TOOLS+=		awk:run bash:run chmod gmake:run makeinfo sed:run
-GCC_REQD+=		4.4
 
 GCC_VERSION=		4.5.3
 
@@ -66,12 +65,37 @@ REPLACE_BASH+= libstdc++-v3/scripts/run_doxygen
 
 
 CONFIGURE_ARGS+=	--prefix=${GCC_PREFIX:Q}
-CONFIGURE_ARGS+=	--enable-languages=${LANGS:Q}
 CONFIGURE_ARGS+=	--enable-shared
 CONFIGURE_ARGS+=	--enable-long-long
 CONFIGURE_ARGS+=	--with-local-prefix=${GCC_PREFIX:Q}
+CONFIGURE_ARGS+=	--enable-languages=${LANGS:Q}
+.if ${OPSYS} == "NetBSD" && ${OS_VARIANT} == "Minix"
+CPPFLAGS+=             -DNETBSD_NATIVE
+
+MAKE_ENV+=		gcc_cv_as_hidden=yes gcc_cv_ld_hidden=yes
+
+CONFIGURE_ARGS+=	--disable-libssp
+CONFIGURE_ARGS+=	--disable-threads
+CONFIGURE_ARGS+=	--disable-multilib
+CONFIGURE_ARGS+=	--with-sysroot=/
+CONFIGURE_ARGS+=	--with-as=${PREFIX}/gnu/bin/as
+CONFIGURE_ARGS+=	--with-system-zlib
+CONFIGURE_ARGS+=	--target=i586-elf32-minix
+
+CONFIGURE_ARGS+=	--with-arch=i586
+CONFIGURE_ARGS+=	--with-tune=nocona
+
+# BJG: Workaround for minix patch breaking on NUL inputs.
+USE_TOOLS+=              gsed
+post-extract:
+.for f in libgomp/libgomp.info libjava/classpath/doc/cp-tools.info gcc/doc/gcj.info gcc/doc/gcc.info gcc/doc/gccinstall.info gcc/doc/cppinternals.info gcc/doc/gccint.info gcc/doc/cpp.info gcc/fortran/gfortran.info
+	gsed -i.prev  -s 's/^..\[index..\]$$/[index]/' ${WRKSRC}/${f}
+.endfor
+
+.else
 CONFIGURE_ARGS+=	--enable-libssp
 CONFIGURE_ARGS+=	--enable-threads=posix
+.endif # ${OPSYS} == "NetBSD" && ${OS_VARIANT} == "Minix"
 .if ${OPSYS} == "NetBSD"
 .include "../../devel/binutils/buildlink3.mk"
 .include "../../devel/libelf/buildlink3.mk"
@@ -79,24 +103,8 @@ CONFIGURE_ARGS+=	--with-ld=${PREFIX}/gnu/bin/ld
 CONFIGURE_ARGS+=	--with-libelf=${PREFIX}
 MAKE_ENV+=		ac_cv_func_clock_gettime=yes
 .endif
-
-CONFIGURE_ARGS.Linux+=	--disable-libquadmath --disable-libquadmath-support
-
-# See ${WRKSRC}/libgcc/config/t-slibgcc-darwin: It uses strip(1) to
-# create a stub library, not just to remove symbols, so we must not
-# let strip(1) be a no-op regardless of ${INSTALL_UNSTRIPPED} or the
-# build fails for missing files.
-CONFIGURE_ARGS.Darwin+=	STRIP_FOR_TARGET=${TOOLS_PLATFORM.strip}
-
-.if !empty(MACHINE_PLATFORM:MDarwin-[0-8].*-*)
-CONFIGURE_ARGS+=	--with-dwarf2
-.endif
-
-.if !empty(MACHINE_PLATFORM:MDarwin-[0-8].*-powerpc) \
- || (!empty(MACHINE_PLATFORM:MLinux-*-x86_64) && \
-      exists(/usr/include/gnu/stubs-64.h) && \
-     !exists(/usr/include/gnu/stubs-32.h))
-CONFIGURE_ARGS+=	--disable-multilib
+.if ${OPSYS} == "Linux"
+CONFIGURE_ARGS+=	--disable-libquadmath --disable-libquadmath-support
 .endif
 
 CONFIGURE_ENV+=		CONFIG_SHELL=${CONFIG_SHELL}
@@ -116,7 +124,7 @@ CFLAGS+=		-I${BUILDLINK_DIR}/include
 
 # Somone should fix this so it will match the NetBSD system compiler
 #.if ${OPSYS} == "NetBSD"
-#GCC_PLATFORM=	${MACHINE_ARCH}--${LOWER_OPSYS}${APPEND_ELF}
+#GCC_PLATFORM=	${LOWER_ARCH}--${LOWER_OPSYS}${APPEND_ELF}
 #CONFIGURE_ARGS+=	--host=${GCC_PLATFORM:Q}
 #MAKE_ENV+=		AR=/usr/bin/ar
 #.endif # NetBSD
@@ -131,6 +139,15 @@ pre-configure:
 
 .if ${OPSYS} == "NetBSD"
 	${CP} ${WRKSRC}/gcc/config/freebsd-stdint.h ${WRKSRC}/gcc/config/netbsd-stdint.h
+
+.if ${OS_VARIANT} == "Minix"
+	${CP} ${FILESDIR}/minix.h ${WRKSRC}/gcc/config/
+	${CP} ${FILESDIR}/t-minix ${WRKSRC}/gcc/config/
+	${CP} ${FILESDIR}/minix-spec.h ${WRKSRC}/gcc/config/
+	${CP} ${FILESDIR}/arm-minix.h ${WRKSRC}/gcc/config/arm/minix.h
+	${CP} ${FILESDIR}/i386-minix.h ${WRKSRC}/gcc/config/i386/minix.h
+	${CP} ${FILESDIR}/gcov-minix-fs-wrapper.h ${WRKSRC}/gcc/
+.endif
 .endif
 
 do-configure:
@@ -147,8 +164,14 @@ do-test:
 	(cd ${WRKDIR}/obj && ${GMAKE} -k check)
 
 do-install:
-	(cd ${WRKDIR}/obj && ${SETENV} ${MAKE_ENV} ${GMAKE} install DESTDIR=${DESTDIR} \
-	 && ${TEST} -f ${DESTDIR}${GCC_PREFIX}/bin/cc || ${LN} -f ${DESTDIR}${GCC_PREFIX}/bin/gcc ${DESTDIR}${GCC_PREFIX}/bin/cc)
+	(cd ${WRKDIR}/obj && ${SETENV} ${MAKE_ENV} ${GMAKE} install DESTDIR=${DESTDIR} )
+	${MKDIR} -p ${DESTDIR}/${PREFIX}/bin
+.for f in g++ c++ gcov gccbug cpp gcc
+	${LN} -sf i586-elf32-minix-${f} ${DESTDIR}/${GCC_PREFIX}/bin/${f}
+	${LN} -sf ${GCC_PREFIX}/bin/i586-elf32-minix-${f} ${DESTDIR}/${PREFIX}/bin/${f}
+	${LN} -sf ${GCC_PREFIX}/bin/i586-elf32-minix-${f} ${DESTDIR}/${PREFIX}/bin/i586-elf32-minix-${f}
+.endfor
+	${TEST} -f ${DESTDIR}${GCC_PREFIX}/bin/cc || ${LN} -f ${DESTDIR}${GCC_PREFIX}/bin/gcc ${DESTDIR}${GCC_PREFIX}/bin/cc
 
 .if ${OPSYS} == "SunOS" && ${OS_VERSION} != "5.11" && !empty(MACHINE_ARCH:M*86*)
 post-install:
@@ -157,7 +180,7 @@ post-install:
 .endif
 
 GENERATE_PLIST+=                                                        \
-	cd ${DESTDIR}${PREFIX} && ${FIND} ${GCC_SUBPREFIX} \( -type f -o -type l \) -print \
+	cd ${DESTDIR}${PREFIX} && ${FIND} . \( -type f -o -type l \) -a ! -name 'crt*.o' -print \
 	| ${SORT} ;
 
 .include "../../mk/bsd.pkg.mk"

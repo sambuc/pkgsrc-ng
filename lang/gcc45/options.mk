@@ -1,13 +1,11 @@
-# $NetBSD: options.mk,v 1.2 2012/04/13 11:10:09 hans Exp $
+# $NetBSD: options.mk,v 1.4 2016/02/25 14:42:55 jperkin Exp $
 
 PKG_OPTIONS_VAR=	PKG_OPTIONS.gcc45
-PKG_SUPPORTED_OPTIONS=	nls gcc-inplace-math gcc-c++ gcc-fortran gcc-java gcc-objc #gcc-ada
-PKG_SUGGESTED_OPTIONS=	gcc-c++ gcc-fortran gcc-objc
-.if ${OPSYS} == "NetBSD"
-PKG_SUGGESTED_OPTIONS+=	nls
-.elif ${OPSYS} == "SunOS"
-PKG_SUGGESTED_OPTIONS+=	gcc-inplace-math
-.endif
+PKG_SUPPORTED_OPTIONS=	nls gcc-inplace-math gcc-c++ gcc-fortran gcc-java gcc-objc gcc-objc++ #gcc-ada
+PKG_SUGGESTED_OPTIONS=	gcc-c++ gcc-fortran gcc-objc gcc-objc++
+
+PKG_SUGGESTED_OPTIONS.NetBSD+=	nls
+PKG_SUGGESTED_OPTIONS.SunOS+=	gcc-inplace-math
 
 PKG_OPTIONS_LEGACY_VARS+=	BUILD_CXX:gcc-c++
 PKG_OPTIONS_LEGACY_VARS+=	BUILD_FORTRAN:gcc-fortran
@@ -84,15 +82,22 @@ MAKE_ENV+=		ac_cv_prog_JAR=no
 .include "../../lang/python/application.mk"
 .endif
 
+.if !empty(PKG_OPTIONS:Mgcc-objc++)
+.  if empty(PKG_OPTIONS:Mgcc-objc)
+PKG_OPTIONS+=		gcc-objc
+.  endif
+.  if empty(PKG_OPTIONS:Mgcc-c++)
+PKG_OPTIONS+=		gcc-c++
+.  endif
+
+LANGS+=			obj-c++
+.endif
+
 .if !empty(PKG_OPTIONS:Mgcc-c++)
 LANGS+=			c++
 USE_TOOLS+=		perl
 CONFIGURE_ARGS+=	--enable-__cxa_atexit
-.if ${OPSYS} == "NetBSD" && ${OS_VARIANT} == "Minix"
-CONFIGURE_ARGS+=	--with-gxx-include-dir=${GCC_PREFIX}/include/g++/
-.else
 CONFIGURE_ARGS+=	--with-gxx-include-dir=${GCC_PREFIX}/include/c++/
-.endif
 .endif
 
 .if !empty(PKG_OPTIONS:Mgcc-fortran)

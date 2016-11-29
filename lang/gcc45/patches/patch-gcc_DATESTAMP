@@ -1,7 +1,0 @@
-$NetBSD$
-
---- gcc/DATESTAMP.orig	Thu Apr 28 00:17:54 2011
-+++ gcc/DATESTAMP
-@@ -1 +1 @@
--20110428
-+20120702

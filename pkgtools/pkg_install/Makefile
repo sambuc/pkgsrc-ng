@@ -80,6 +80,7 @@ CPPFLAGS+=		-DDEF_UMASK=${DEF_UMASK}
 MAKE_ENV+=		PKGSRC_MACHINE_ARCH=${MACHINE_ARCH}
 .if ${OPSYS} == "NetBSD" && ${OS_VARIANT} == "Minix"
 MAKE_ENV+=		OPSYS=Minix
+CPPFLAGS+=		-DOPSYS_NAME=\"Minix\"
 .else
 MAKE_ENV+=		OPSYS=${OPSYS}
 .endif # ${OPSYS} == "NetBSD" && ${OS_VARIANT} == "Minix"
